@@ -1,4 +1,4 @@
-import type { TemplateSet } from "../template-react-binding";
+import type { TemplatePair } from "../template-react-binding";
 import type { LayoutBase } from "../../template-models/template-models";
 import { templateValidatorFor } from "../../template-models/validator-utils";
 import type { TextComponent } from "../types";
@@ -29,7 +29,7 @@ export const ParagraphSet = {
         "The paragraph text. Always include this field of the template last.",
     },
   },
-} as const satisfies TemplateSet<
+} as const satisfies TemplatePair<
   TemplateType,
   ParagraphTemplate,
   ParagraphProps

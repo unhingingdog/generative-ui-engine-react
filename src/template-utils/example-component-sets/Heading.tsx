@@ -1,4 +1,4 @@
-import type { TemplateSet } from "../template-react-binding";
+import type { TemplatePair } from "../template-react-binding";
 import type { LayoutBase } from "../../template-models/template-models";
 import { templateValidatorFor } from "../../template-models/validator-utils";
 import type { TextComponent } from "../types";
@@ -48,4 +48,4 @@ export const HeadingSet = {
         "The text of the heading. Always include this field of the template last.",
     },
   },
-} as const satisfies TemplateSet<TemplateType, HeadingTemplate, HeadingProps>;
+} as const satisfies TemplatePair<TemplateType, HeadingTemplate, HeadingProps>;

@@ -4,7 +4,7 @@ import type {
   UserQueryResponsePayload,
 } from "../types";
 import type { QueryableParent } from "../../template-models/template-models";
-import type { TemplateSet } from "../template-react-binding";
+import type { TemplatePair } from "../template-react-binding";
 import { queryableParentValidatorFor } from "../../template-models/validator-utils";
 
 type TemplateType = "form";
@@ -74,4 +74,4 @@ export const FormSet = {
         "Array of 'input' query prompts. Always include this field of the template last.",
     },
   },
-} as const satisfies TemplateSet<TemplateType, FormTemplate, FormProps>;
+} as const satisfies TemplatePair<TemplateType, FormTemplate, FormProps>;

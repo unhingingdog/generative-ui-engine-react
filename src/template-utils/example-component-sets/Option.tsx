@@ -4,7 +4,7 @@ import type {
   UserQueryResponsePayload,
 } from "../types";
 import type { QueryResponder } from "../../template-models/template-models";
-import type { TemplateSet } from "../template-react-binding";
+import type { TemplatePair } from "../template-react-binding";
 import { templateValidatorFor } from "../../template-models/validator-utils";
 import z from "zod";
 
@@ -47,4 +47,4 @@ export const OptionSet = {
         "Label shown on the button; also used as the submitted value.",
     },
   },
-} as const satisfies TemplateSet<TemplateType, InputTemplate, Props>;
+} as const satisfies TemplatePair<TemplateType, InputTemplate, Props>;

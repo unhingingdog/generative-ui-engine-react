@@ -1,6 +1,6 @@
 import type { GenerativeUIAssistantQueryComponent } from "../types";
 import type { QueryResponder } from "../../template-models/template-models";
-import type { TemplateSet } from "../template-react-binding";
+import type { TemplatePair } from "../template-react-binding";
 import { templateValidatorFor } from "../../template-models/validator-utils";
 import z from "zod";
 
@@ -34,4 +34,4 @@ export const InputSet = {
       queryContent: "The text content used to prompt the user's response.",
     },
   },
-} as const satisfies TemplateSet<TemplateType, InputTemplate, Props>;
+} as const satisfies TemplatePair<TemplateType, InputTemplate, Props>;

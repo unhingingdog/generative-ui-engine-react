@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import type { GenerativeUIComponent } from "../types";
 import type { Parent } from "../../template-models/template-models";
-import type { TemplateSet } from "../template-react-binding";
+import type { TemplatePair } from "../template-react-binding";
 import { parentValidatorFor } from "../../template-models/validator-utils";
 
 type TemplateType = "container";
@@ -23,7 +23,7 @@ export const ContainerSet = {
         "The templates wrapped by this container. Always include this field last.",
     },
   },
-} as const satisfies TemplateSet<
+} as const satisfies TemplatePair<
   TemplateType,
   ContainerTemplate,
   ContainerProps
