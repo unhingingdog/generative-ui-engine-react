@@ -1,5 +1,6 @@
 import z from "zod";
 import { initTelomere, type ParseResult } from "telomere";
+import { isKeyOrTypeError, debugClip } from "./engine-utils";
 
 export interface EngineBackend {
   next(delta: string): void;
@@ -16,8 +17,6 @@ type Opts<TSchema extends z.ZodTypeAny> = {
   logger?: Logger;
 };
 
-const clip = (s: string, n = 200) => (s.length > n ? `${s.slice(0, n)}…` : s);
-
 export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
   schema,
   onNext,
@@ -26,6 +25,7 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
   logger = console,
 }: Opts<TSchema>): Promise<EngineBackend> {
   const tel = await initTelomere();
+
   let raw = "";
   let seq = 0;
   let totalBytes = 0;
@@ -34,15 +34,18 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
   const logw = (...args: any[]) => debug && logger.warn("[engine]", ...args);
   const loge = (...args: any[]) => debug && logger.error("[engine]", ...args);
 
+  logd("engine created");
+
   const next = (delta: string) => {
     seq += 1;
     totalBytes += delta.length;
     logd(
       `Δ#${seq} received (${delta.length}B, total ${totalBytes}B):`,
-      clip(delta),
+      debugClip(delta),
     );
 
     raw += delta;
+
     let r: ParseResult;
     try {
       r = tel.processDelta(delta);
@@ -55,7 +58,9 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
     logd(
       `Δ#${seq} telomere ->`,
       r.type,
-      r.type === "Success" ? `(cap ${r.cap.length}B: ${clip(r.cap)})` : "",
+      r.type === "Success"
+        ? ` (cap ${r.cap.length}B: ${debugClip(r.cap)})`
+        : "",
     );
 
     if (r.type !== "Success") {
@@ -64,7 +69,7 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
     }
 
     const stableDoc = raw + r.cap;
-    logd(`Δ#${seq} stable doc (${stableDoc.length}B):`, clip(stableDoc));
+    logd(`Δ#${seq} stable doc (${stableDoc.length}B):`, debugClip(stableDoc));
 
     let parsed: unknown;
     try {
@@ -80,14 +85,18 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
     if (res.success) {
       logd(`Δ#${seq} Zod.parse OK -> onNext()`);
       onNext(res.data);
-    } else {
-      logw(
-        `Δ#${seq} Zod validation failed:`,
-        res.error.issues
-          .map((i) => `${i.path.join(".") || "<root>"}: ${i.message}`)
-          .join(" | "),
-      );
+      return;
+    }
+
+    // Only surface *hard* schema errors. Pending/extendable failures are swallowed.
+    if (isKeyOrTypeError(res.error)) {
+      logw(`Δ#${seq} Zod HARD error -> onInvalid`, res.error.issues);
       onInvalid?.(res.error, stableDoc);
+    } else {
+      logd(
+        `Δ#${seq} Zod pending (missing/extendable) — waiting for more bytes`,
+      );
+      // Keep buffering — do not emit onInvalid.
     }
   };
 
@@ -106,6 +115,5 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
     }
   };
 
-  logd(`engine created`);
   return { next, reset };
 }

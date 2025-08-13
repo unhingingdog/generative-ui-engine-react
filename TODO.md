@@ -1,7 +1,7 @@
 - [x] Build pairing utility
 - [x] Somehow ensure all fields of template are present
 - [x] set of example templates/components
-- [ ] Copy over engine frontend, but make render target agnostic
 - [ ] Extract engine backend and rewrite to target react
+- [ ] Copy over engine frontend, but make render target agnostic
 - [ ] Copy over and update prompt utils
 - [ ] LLM stream abstraction interface utility
