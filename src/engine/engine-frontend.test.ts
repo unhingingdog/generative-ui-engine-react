@@ -1,6 +1,5 @@
-import { registry } from "../template-utils/example-component-sets/registry";
-
 import "@testing-library/jest-dom";
+import { registry } from "../template-utils/example-component-sets/registry";
 import { fireEvent, within } from "@testing-library/dom";
 import { act } from "react-dom/test-utils";
 import { createEngineFrontend } from "./engine-frontend";
