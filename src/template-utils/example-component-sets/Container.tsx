@@ -1,13 +1,24 @@
+// Container.tsx
 import type { PropsWithChildren } from "react";
 import type { GenerativeUIComponent } from "../types";
-import type { Parent } from "../../template-models/template-models";
+import type { Parent, LayoutBase } from "../../template-models/template-models";
+import { templateValidatorFor } from "../../template-models/validator-utils";
+import z from "zod";
 import type { TemplatePair } from "../template-react-binding";
-import { parentValidatorFor } from "../../template-models/validator-utils";
 
 type TemplateType = "container";
 interface ContainerTemplate extends Parent<TemplateType> { }
 
-export const templateValidator = parentValidatorFor("container");
+export const templateValidator = (
+  getUnion: () => z.ZodTypeAny,
+): z.ZodType<ContainerTemplate> => {
+  const Node: z.ZodType<LayoutBase<string>> = z.lazy(() =>
+    getUnion(),
+  ) as z.ZodType<LayoutBase<string>>;
+  return templateValidatorFor("container", {
+    children: z.array(Node).nonempty(),
+  }) as unknown as z.ZodType<ContainerTemplate>;
+};
 
 export type ContainerProps = PropsWithChildren & GenerativeUIComponent;
 const Container = ({ children }: ContainerProps) => <div>{children}</div>;
@@ -18,10 +29,7 @@ export const ContainerSet = {
   templateValidator,
   instructions: {
     generalUsage: "Group children; one root with nested content.",
-    fields: {
-      children:
-        "The templates wrapped by this container. Always include this field last.",
-    },
+    fields: { children: "Array of child nodes." },
   },
 } as const satisfies TemplatePair<
   TemplateType,

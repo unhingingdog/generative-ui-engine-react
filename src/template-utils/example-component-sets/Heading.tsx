@@ -15,16 +15,14 @@ interface HeadingTemplate extends LayoutBase<TemplateType> {
 
 export const templateValidator = templateValidatorFor("heading", {
   content: z.string().min(1),
-  level: z
-    .union([
-      z.literal(1),
-      z.literal(2),
-      z.literal(3),
-      z.literal(4),
-      z.literal(5),
-      z.literal(6),
-    ])
-    .optional(),
+  level: z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(3),
+    z.literal(4),
+    z.literal(5),
+    z.literal(6),
+  ]),
 });
 
 export type HeadingProps = TextComponent & {

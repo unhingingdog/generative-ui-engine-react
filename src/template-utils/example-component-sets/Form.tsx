@@ -1,18 +1,26 @@
+// example-component-sets/Form.tsx
 import type { PropsWithChildren } from "react";
+import type { TemplatePair } from "../template-react-binding";
 import type {
   GenerativeUISubmitComponent,
+  GenerativeUIComponent,
   UserQueryResponsePayload,
 } from "../types";
-import type { QueryableParent } from "../../template-models/template-models";
-import type { TemplatePair } from "../template-react-binding";
-import { queryableParentValidatorFor } from "../../template-models/validator-utils";
+import type { Parent } from "../../template-models/template-models";
+import { templateValidatorFor } from "../../template-models/validator-utils";
+import { templateValidator as InputValidator } from "./Input";
+import z from "zod";
 
 type TemplateType = "form";
-interface FormTemplate extends QueryableParent<TemplateType> { }
+interface FormTemplate extends Parent<TemplateType> { }
 
-export const templateValidator = queryableParentValidatorFor("form");
+export const templateValidator = templateValidatorFor("form", {
+  children: z.array(InputValidator).nonempty(),
+}) as unknown as z.ZodType<FormTemplate>;
 
-export type FormProps = PropsWithChildren & GenerativeUISubmitComponent;
+export type FormProps = PropsWithChildren &
+  GenerativeUISubmitComponent &
+  GenerativeUIComponent;
 
 const Form = ({ children, onSubmit }: FormProps) => {
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -27,7 +35,6 @@ const Form = ({ children, onSubmit }: FormProps) => {
       acc.set(name, arr);
     }
 
-    // include clicked submitter (if it has a name)
     const submitter = (e.nativeEvent as SubmitEvent).submitter as
       | HTMLButtonElement
       | HTMLInputElement
@@ -42,23 +49,20 @@ const Form = ({ children, onSubmit }: FormProps) => {
       }
     }
 
-    // Map form data -> UserQueryResponsePayload[]
-    const responses: UserQueryResponsePayload[] = Array.from(acc.entries()).map(
+    const payload: UserQueryResponsePayload[] = Array.from(acc.entries()).map(
       ([queryId, arr]) => ({
         queryId,
         response: arr.length === 1 ? arr[0] : arr,
       }),
     );
 
-    onSubmit(responses);
+    onSubmit(payload);
   };
 
   return (
     <form onSubmit={handleSubmit}>
       {children}
-      <button name="submit" type="submit">
-        Continue
-      </button>
+      <button type="submit">Continue</button>
     </form>
   );
 };
@@ -68,10 +72,8 @@ export const FormSet = {
   component: Form,
   templateValidator,
   instructions: {
-    generalUsage: "Scope inputs and buttons; submits together.",
-    fields: {
-      children:
-        "Array of 'input' query prompts. Always include this field of the template last.",
-    },
+    generalUsage:
+      "Collect values from input nodes and submit as an array of {queryId,response}.",
+    fields: { children: "Array of input nodes." },
   },
 } as const satisfies TemplatePair<TemplateType, FormTemplate, FormProps>;
