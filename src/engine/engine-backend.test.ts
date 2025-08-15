@@ -157,9 +157,9 @@ describe.sequential(
     it("#5 streams form and final cap closes container → onNext #2", () => {
       engine.next(
         '{"id":"form","children":[' +
-        '{"id":"input","queryId":"name","queryContent":"Your name"},' +
-        '{"id":"input","queryId":"email","queryContent":"Email"}' +
-        "]}",
+          '{"id":"input","queryId":"name","queryContent":"Your name"},' +
+          '{"id":"input","queryId":"email","queryContent":"Email"}' +
+          "]}",
       );
       expect(onInvalid).toHaveBeenCalledTimes(0);
       expect(onNext).toHaveBeenCalledTimes(2);

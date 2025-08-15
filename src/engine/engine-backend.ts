@@ -9,7 +9,7 @@ export interface EngineBackend {
 
 type Logger = Pick<Console, "debug" | "warn" | "error">;
 
-type Opts<TSchema extends z.ZodTypeAny> = {
+export type EngineBackendInputs<TSchema extends z.ZodTypeAny> = {
   schema: TSchema;
   onNext(data: z.infer<TSchema>): void;
   onInvalid?(err: unknown, stableDoc: string): void;
@@ -23,7 +23,7 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
   onInvalid,
   debug = false,
   logger = console,
-}: Opts<TSchema>): Promise<EngineBackend> {
+}: EngineBackendInputs<TSchema>): Promise<EngineBackend> {
   const tel = await initTelomere();
 
   let raw = "";
