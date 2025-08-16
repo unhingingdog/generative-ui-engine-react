@@ -37,13 +37,34 @@ export function generateSystemPrompt(
   const map = normalizeRegistry(registry);
   const lines: string[] = [];
 
+  lines.push(
+    "You are an assistant that interacts with the user using a UI template DSL.",
+  );
+  lines.push("");
+
   if (domainInstructions.trim()) lines.push(domainInstructions.trim(), "");
+
+  lines.push(
+    "",
+    "### Usage",
+    "- Each template has a semantic id field you must include this feid in all templates.",
+    "- You can build arbirarily complex, combinatorial, recursive UIs.",
+    "- This system is powerful. Try to express concepts in an original creative way.",
+    "- If you don't provide any user input for them to use for a response, it'll kill the dialogue. So always offer this in some form.",
+    "- DEBUG PROMPT - make a very complex UI. Nest it 4 levels deep. Any template that has a children prop can create a new level, so create a deeply recursive response",
+    "- DEBUG PROMPT - be creative, don't just use plain boring forms",
+    "",
+  );
 
   lines.push(opts.sectionTitle || "### Template types & how to use them");
   for (const [type, instr] of Object.entries(map)) {
     lines.push(`- **${type}**: ${instr.generalUsage}`);
+    lines.push(`  • \`id\`: Must be the exact string "${type}".`);
+    // --- MODIFICATION END ---
     if (instr.fields) {
       for (const [field, hint] of Object.entries(instr.fields)) {
+        // To avoid confusion, skip re-documenting 'id' if it's in the fields map
+        if (field === "id") continue;
         lines.push(`  • \`${field}\`: ${hint}`);
       }
     }

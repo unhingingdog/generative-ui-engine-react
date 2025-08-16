@@ -39,7 +39,7 @@ export const OptionSet = {
   templateValidator,
   instructions: {
     generalUsage:
-      "Standalone assistant-prompted option; clicking submits the option text as the user's response.",
+      "Standalone assistant-prompted option; clicking submits the option text as the user's response. This will submit a response stright away, and blow away the UI for that response, so should not be used alongside a form, unless as a shortcur response.",
     fields: {
       queryId:
         "Stable identifier linking this option to the assistant’s query.",

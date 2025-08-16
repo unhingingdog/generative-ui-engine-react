@@ -15,7 +15,7 @@ type TemplateType = "form";
 interface FormTemplate extends Parent<TemplateType> { }
 
 export const templateValidator = templateValidatorFor("form", {
-  children: z.array(InputValidator).nonempty(),
+  children: z.array(InputValidator),
 }) as unknown as z.ZodType<FormTemplate>;
 
 export type FormProps = PropsWithChildren &

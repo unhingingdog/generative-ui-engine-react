@@ -3,6 +3,7 @@
 - [x] set of example templates/components
 - [x] Extract engine backend and rewrite to target react
 - [x] Copy over engine frontend, but make render target agnostic
-- [ ] Copy over and update prompt utils
-- [ ] LLM stream abstraction interface utility
+- [x] Copy over and update prompt utils
+- [x] LLM stream abstraction interface utility
+- [ ] prompt engineering - get it to understand how to use a form properly, allow more than just fields
 - [ ] stretch: is is possible to get the next streamed ui from a follow-up prompt and stream a diff into the UI from last one

@@ -53,11 +53,16 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
       );
     }
 
-    if (id === "form") {
+    if (id === "form" || id === "option") {
       props.onSubmit = onSubmit;
     }
 
-    return createElement(Comp, { key: keyFor(String(id), path), ...props });
+    const element = createElement(Comp, {
+      key: keyFor(String(id), path),
+      ...props,
+    });
+    console.log("ELEMENT CREATED", element);
+    return element;
   };
 
   const takeNext = (data: TemplateUnion<Ps>) => {

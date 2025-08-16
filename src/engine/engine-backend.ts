@@ -1,6 +1,6 @@
 import z from "zod";
 import { initTelomere, type ParseResult } from "telomere";
-import { isKeyOrTypeError, debugClip } from "./engine-utils";
+import { isKeyOrTypeError } from "./engine-utils";
 
 export interface EngineBackend {
   next(delta: string): void;
@@ -24,11 +24,10 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
   debug = false,
   logger = console,
 }: EngineBackendInputs<TSchema>): Promise<EngineBackend> {
-  const tel = await initTelomere();
+  const telomere = await initTelomere();
 
   let raw = "";
   let seq = 0;
-  let totalBytes = 0;
 
   const logd = (...args: any[]) => debug && logger.debug("[engine]", ...args);
   const logw = (...args: any[]) => debug && logger.warn("[engine]", ...args);
@@ -38,38 +37,41 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
 
   const next = (delta: string) => {
     seq += 1;
-    totalBytes += delta.length;
-    logd(
-      `Δ#${seq} received (${delta.length}B, total ${totalBytes}B):`,
-      debugClip(delta),
-    );
+    logd(`Δ#${seq} received delta:`, delta);
+
+    console.log("DELTA WAS: ", delta);
 
     raw += delta;
 
-    let r: ParseResult;
+    console.log("RAW IS NOW: ", raw);
+
+    let telomereResult: ParseResult;
     try {
-      r = tel.processDelta(delta);
+      telomereResult = telomere.processDelta(delta);
     } catch (err) {
+      console.error("TELOMERE ERROR", err);
       loge(`Δ#${seq} telomere.processDelta threw:`, err);
       onInvalid?.(err, raw);
       return;
     }
 
+    console.log("TELOMERE CAP", telomereResult);
+
     logd(
       `Δ#${seq} telomere ->`,
-      r.type,
-      r.type === "Success"
-        ? ` (cap ${r.cap.length}B: ${debugClip(r.cap)})`
-        : "",
+      telomereResult.type,
+      telomereResult.type === "Success" ? ` : ${telomereResult.cap})` : "",
     );
 
-    if (r.type !== "Success") {
+    if (telomereResult.type !== "Success") {
       logd(`Δ#${seq} not closable yet; awaiting more bytes`);
       return;
     }
 
-    const stableDoc = raw + r.cap;
-    logd(`Δ#${seq} stable doc (${stableDoc.length}B):`, debugClip(stableDoc));
+    const stableDoc = raw + telomereResult.cap;
+    logd(`Δ#${seq} stable doc:`, stableDoc);
+
+    console.log("STABLE IS: ", stableDoc);
 
     let parsed: unknown;
     try {
@@ -83,6 +85,7 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
 
     const res = schema.safeParse(parsed);
     if (res.success) {
+      console.log("VALIDATION SUCCESS", res);
       logd(`Δ#${seq} Zod.parse OK -> onNext()`);
       onNext(res.data);
       return;
@@ -90,9 +93,11 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
 
     // Only surface *hard* schema errors. Pending/extendable failures are swallowed.
     if (isKeyOrTypeError(res.error)) {
+      console.log("VALIDATION ERROR", res.error);
       logw(`Δ#${seq} Zod HARD error -> onInvalid`, res.error.issues);
       onInvalid?.(res.error, stableDoc);
     } else {
+      console.log("VALIDATION ERROR", res.error);
       logd(
         `Δ#${seq} Zod pending (missing/extendable) — waiting for more bytes`,
       );
@@ -101,14 +106,11 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
   };
 
   const reset = () => {
-    logd(
-      `reset() called; clearing ${raw.length}B, seq=${seq}, totalBytes=${totalBytes}`,
-    );
+    logd(`reset() called; clearing ${raw.length}B, seq=${seq}`);
     raw = "";
     seq = 0;
-    totalBytes = 0;
     try {
-      (tel as any).reset?.();
+      telomere.reset?.();
       logd(`reset() telomere.reset invoked`);
     } catch (err) {
       logw(`reset() telomere.reset threw:`, err);

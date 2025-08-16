@@ -13,36 +13,6 @@ import { generateSystemPrompt } from "../agent/prompt-generator";
 import { createCombinedEngine } from "../engine/engine";
 import OpenAI from "openai";
 
-// ---------- helpers ----------
-function createAsyncQueue<T>() {
-  const buf: T[] = [];
-  let pending: ((r: IteratorResult<T>) => void) | null = null;
-  let ended = false;
-  return {
-    push(v: T) {
-      if (pending) {
-        pending({ value: v, done: false });
-        pending = null;
-      } else buf.push(v);
-    },
-    end() {
-      ended = true;
-      if (pending) {
-        pending({ value: undefined as any, done: true });
-        pending = null;
-      }
-    },
-    async next(): Promise<IteratorResult<T>> {
-      if (buf.length) return { value: buf.shift()!, done: false };
-      if (ended) return { value: undefined as any, done: true };
-      return new Promise((resolve) => (pending = resolve));
-    },
-    [Symbol.asyncIterator]() {
-      return this;
-    },
-  };
-}
-
 function buildPromptFromMessages(
   messages: ChatMessage[],
   systemPrompt: string,
@@ -58,10 +28,101 @@ function buildPromptFromMessages(
   return parts.join("\n");
 }
 
+const complexExample = {
+  id: "container",
+  children: [
+    {
+      id: "heading",
+      level: 1,
+      content: "Project Setup Assistant",
+    },
+    {
+      id: "paragraph",
+      content:
+        "Welcome! I can help you set up your new project. Please provide the details below or choose a quick-start option.",
+    },
+    {
+      id: "container",
+      children: [
+        {
+          id: "heading",
+          level: 2,
+          content: "New Project Details",
+        },
+        {
+          id: "form",
+          children: [
+            {
+              id: "input",
+              queryId: "project_name",
+              queryContent: "What is the name of your project?",
+            },
+            {
+              id: "input",
+              queryId: "project_description",
+              queryContent: "Briefly describe the project's main goal.",
+            },
+          ],
+        },
+        {
+          id: "container",
+          children: [
+            {
+              id: "heading",
+              level: 3,
+              content: "Quick Start",
+            },
+            {
+              id: "option",
+              queryId: "quick_start_react",
+              queryContent: "Initialize a standard React App",
+            },
+            {
+              id: "container",
+              children: [
+                {
+                  id: "heading",
+                  level: 4,
+                  content: "Advanced Options",
+                },
+                {
+                  id: "container",
+                  children: [
+                    {
+                      id: "paragraph",
+                      content: "Select a specific deployment target:",
+                    },
+                    {
+                      id: "container",
+                      children: [
+                        {
+                          id: "option",
+                          queryId: "deploy_vercel",
+                          queryContent: "Deploy to Vercel",
+                        },
+                        {
+                          id: "option",
+                          queryId: "deploy_aws",
+                          queryContent: "Deploy to AWS Amplify",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 // ---------- constants ----------
 const SYSTEM_PROMPT = generateSystemPrompt(
-  "Example domain: collect a few details from the user, then present a simple summary.",
+  "You are an customer service assistant for a furniture store.",
   registry.instructions,
+  { exampleJSON: complexExample },
 );
 
 // ---------- main ----------
@@ -80,7 +141,7 @@ export async function startExample() {
     rootNode: document.getElementById("gen-ui-root")!,
     onSubmit: (payloads: UserQueryResponsePayload[]) =>
       adapter.submit(payloads),
-    debug: true,
+    debug: false,
   });
   console.log("INIT ENGINE", engine);
 
@@ -89,54 +150,45 @@ export async function startExample() {
     reset: () => engine.reset(),
   };
 
-  // Provider: Responses API stream → engine
+  // Provider: Responses API stream → engine (async-iterable; no race with 'completed')
   const provider = createAgentsProvider(async function*(
     messages: ChatMessage[],
   ) {
     console.log("PROVIDER start", messages);
 
     const prompt = buildPromptFromMessages(messages, SYSTEM_PROMPT);
-    const q = createAsyncQueue<string>();
     let gotDelta = false;
 
     try {
-      console.log("RESPONSES creating stream…");
-      const stream = await openai.responses.stream({
-        model: "gpt-5",
+      console.log("RESPONSES creating stream (async iterable) …");
+      const stream = await openai.responses.create({
+        model: "gpt-4o-mini",
         input: prompt,
+        stream: true,
       });
-      console.log("RESPONSES stream created", stream);
+      console.log("RESPONSES stream created (iterable)");
 
-      await new Promise<void>((resolve) => {
-        let resolved = false;
-        const done = () => {
-          if (!resolved) {
-            resolved = true;
-            console.log("RESPONSES completed");
-            q.end();
-            resolve();
-          }
-        };
-
-        // ✅ Correct TS signature: event object, use event.delta
-        stream.on("response.output_text.delta", (event: any) => {
-          const delta = event?.delta as string | undefined;
-          if (delta) {
+      for await (const event of stream as any) {
+        // Typical event types: response.created, response.output_text.delta, response.completed, ...
+        if (event?.type === "response.output_text.delta") {
+          const delta = event.delta as string;
+          if (delta && delta.length) {
             gotDelta = true;
             // console.log("Δ", JSON.stringify(delta));
-            q.push(delta);
+            yield delta;
           }
-        });
-
-        stream.on("response.completed", done);
-        stream.on("error", (e: any) => {
-          console.log("RESPONSES stream error", e);
-          done();
-        });
-      });
+        } else if (event?.type === "response.completed") {
+          console.log("RESPONSES completed");
+        } else if (
+          event?.type === "response.error" ||
+          event?.type === "error"
+        ) {
+          console.log("RESPONSES event error", event);
+        }
+      }
+      console.log("RESPONSES iterator ended");
     } catch (e) {
-      console.log("RESPONSES top-level error", e);
-      q.end();
+      console.log("RESPONSES stream/create error", e);
     }
 
     // Fallback if no chunks arrived
@@ -152,11 +204,7 @@ export async function startExample() {
       } catch (e) {
         console.log("FALLBACK error", e);
       }
-      return;
     }
-
-    // Emit deltas to engine
-    for await (const delta of q) yield delta;
   });
   console.log("CREATED provider", provider);
 

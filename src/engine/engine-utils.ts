@@ -1,8 +1,5 @@
 import z from "zod";
 
-export const debugClip = (s: string, n = 200) =>
-  s.length > n ? `${s.slice(0, n)}…` : s;
-
 /**
  * Hard = errors we want to emit immediately:
  *  - unrecognized_keys
@@ -10,7 +7,7 @@ export const debugClip = (s: string, n = 200) =>
  *
  * Everything else is considered "pending" and swallowed.
  */
-export function isKeyOrTypeError(err: unknown): boolean {
+export const isKeyOrTypeError = (err: unknown): boolean => {
   if (!(err instanceof z.ZodError)) return false;
 
   return err.issues.some((i: any) => {
@@ -21,4 +18,4 @@ export function isKeyOrTypeError(err: unknown): boolean {
     }
     return false; // swallow all other codes as pending
   });
-}
+};
