@@ -2,7 +2,7 @@
 - [x] Somehow ensure all fields of template are present
 - [x] set of example templates/components
 - [x] Extract engine backend and rewrite to target react
-- [ ] Copy over engine frontend, but make render target agnostic
+- [x] Copy over engine frontend, but make render target agnostic
 - [ ] Copy over and update prompt utils
 - [ ] LLM stream abstraction interface utility
 - [ ] stretch: is is possible to get the next streamed ui from a follow-up prompt and stream a diff into the UI from last one

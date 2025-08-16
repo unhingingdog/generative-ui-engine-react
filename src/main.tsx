@@ -1,10 +1,7 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { startExample } from "./example/example-setup-agent-client-side";
+import "./index.css";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+if (typeof window !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  startExample();
+}

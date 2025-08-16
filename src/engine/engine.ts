@@ -24,6 +24,7 @@ export type EngineInputs<Ps extends TemplatePairs> = EngineFrontendInputs<Ps> &
     "debug" | "logger" | "onInvalid"
   > & {
     Providers?: Providers;
+    streamDone?(): void;
   };
 
 export type CombinedEngine = {
@@ -35,6 +36,7 @@ export type CombinedEngine = {
 export const createCombinedEngine = async <Ps extends TemplatePairs>(
   inputs: EngineInputs<Ps>,
 ): Promise<CombinedEngine> => {
+  console.log("ENGINE START");
   const { registry, rootNode, onSubmit, Providers, debug, logger, onInvalid } =
     inputs;
 
