@@ -1,4 +1,3 @@
-// src/engine/engine-frontend.ts
 import React, { createElement, Fragment } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type {
@@ -8,10 +7,14 @@ import type {
 } from "../template-utils/template-react-binding";
 import type { UserQueryResponsePayload } from "../template-utils/types";
 
+type Logger = Pick<Console, "debug" | "warn" | "error">;
+
 export interface EngineFrontendInputs<Ps extends TemplatePairs> {
   onSubmit(payload: UserQueryResponsePayload[]): void;
   rootNode: HTMLElement;
   registry: TemplateRegistry<Ps>;
+  debug?: boolean;
+  logger?: Logger;
 }
 
 export interface EngineFrontend<Ps extends TemplatePairs> {
@@ -25,9 +28,17 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
   onSubmit,
   rootNode,
   registry,
+  debug = false,
+  logger = console,
 }: EngineFrontendInputs<Ps>): EngineFrontend<Ps> {
   let root: Root | null = createRoot(rootNode);
+  let seq = 0;
   type Id = keyof TemplateRegistry<Ps>["components"];
+
+  const logd = (...args: any[]) => debug && logger.debug("[frontend]", ...args);
+  const logw = (...args: any[]) => debug && logger.warn("[frontend]", ...args);
+
+  logd("frontend created");
 
   const keyFor = (id: string, path: number[]) =>
     `${id}:${path.length ? path.join(".") : "0"}`;
@@ -39,6 +50,7 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
     const id = node.id as Id;
     const Comp = registry.components[id] as React.ComponentType<any>;
     if (!Comp) {
+      logw(`Component with id="${String(id)}" not found in registry.`);
       return createElement(Fragment, {
         key: keyFor(String(id ?? "unknown"), path),
       });
@@ -46,7 +58,6 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
 
     const props: any = { ...node };
 
-    // Recursively render children if present
     if (Array.isArray((node as any).children)) {
       props.children = ((node as any).children as Array<TemplateUnion<Ps>>).map(
         (child, i) => toElement(child, [...path, i]),
@@ -57,22 +68,34 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
       props.onSubmit = onSubmit;
     }
 
-    const element = createElement(Comp, {
+    return createElement(Comp, {
       key: keyFor(String(id), path),
       ...props,
     });
-    console.log("ELEMENT CREATED", element);
-    return element;
   };
 
   const takeNext = (data: TemplateUnion<Ps>) => {
-    if (!root) root = createRoot(rootNode);
+    seq += 1;
+    if (!root) {
+      logd(`takeNext() is re-creating the React root.`);
+      root = createRoot(rootNode);
+    }
+
+    // --- Light Logging ---
+    // Log that a render is happening with the root component's ID.
+    logd(`render#${seq}: updating UI with root component '${data.id}'`);
+
     root.render(toElement(data));
   };
 
-  const reset = () => root?.render(createElement(Fragment));
+  const reset = () => {
+    logd(`reset() called; clearing React root (was render#${seq})`);
+    root?.render(createElement(Fragment));
+    seq = 0;
+  };
 
   const unmount = () => {
+    logd(`unmount() called; destroying React root.`);
     root?.unmount();
     root = null;
   };

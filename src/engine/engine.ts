@@ -36,7 +36,6 @@ export type CombinedEngine = {
 export const createCombinedEngine = async <Ps extends TemplatePairs>(
   inputs: EngineInputs<Ps>,
 ): Promise<CombinedEngine> => {
-  console.log("ENGINE START");
   const { registry, rootNode, onSubmit, Providers, debug, logger, onInvalid } =
     inputs;
 
@@ -45,6 +44,8 @@ export const createCombinedEngine = async <Ps extends TemplatePairs>(
     rootNode,
     onSubmit,
     ...(Providers ? { Providers } : {}),
+    debug,
+    logger,
   });
 
   const backend = await createEngineBackend<SchemaFromPairs<Ps>>({

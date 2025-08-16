@@ -39,23 +39,16 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
     seq += 1;
     logd(`Δ#${seq} received delta:`, delta);
 
-    console.log("DELTA WAS: ", delta);
-
     raw += delta;
-
-    console.log("RAW IS NOW: ", raw);
 
     let telomereResult: ParseResult;
     try {
       telomereResult = telomere.processDelta(delta);
     } catch (err) {
-      console.error("TELOMERE ERROR", err);
       loge(`Δ#${seq} telomere.processDelta threw:`, err);
       onInvalid?.(err, raw);
       return;
     }
-
-    console.log("TELOMERE CAP", telomereResult);
 
     logd(
       `Δ#${seq} telomere ->`,
@@ -71,8 +64,6 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
     const stableDoc = raw + telomereResult.cap;
     logd(`Δ#${seq} stable doc:`, stableDoc);
 
-    console.log("STABLE IS: ", stableDoc);
-
     let parsed: unknown;
     try {
       parsed = JSON.parse(stableDoc);
@@ -85,7 +76,6 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
 
     const res = schema.safeParse(parsed);
     if (res.success) {
-      console.log("VALIDATION SUCCESS", res);
       logd(`Δ#${seq} Zod.parse OK -> onNext()`);
       onNext(res.data);
       return;
@@ -93,20 +83,19 @@ export async function createEngineBackend<TSchema extends z.ZodTypeAny>({
 
     // Only surface *hard* schema errors. Pending/extendable failures are swallowed.
     if (isKeyOrTypeError(res.error)) {
-      console.log("VALIDATION ERROR", res.error);
       logw(`Δ#${seq} Zod HARD error -> onInvalid`, res.error.issues);
       onInvalid?.(res.error, stableDoc);
     } else {
-      console.log("VALIDATION ERROR", res.error);
+      // Recoverable.
       logd(
         `Δ#${seq} Zod pending (missing/extendable) — waiting for more bytes`,
+        res.error.issues,
       );
-      // Keep buffering — do not emit onInvalid.
     }
   };
 
   const reset = () => {
-    logd(`reset() called; clearing ${raw.length}B, seq=${seq}`);
+    logd(`reset() called; clearing ${raw.length} chars, seq=${seq}`);
     raw = "";
     seq = 0;
     try {

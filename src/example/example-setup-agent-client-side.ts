@@ -1,5 +1,5 @@
-// example-setup-agent-client-side.ts
-// POC: stream straight from OpenAI Responses (no Agents SDK/trace). Keeps debugs + in-tab convo memory.
+// This is an example implementation using the example template pairs in template-utils.
+// The code quality is not exemplary.
 
 import { registry } from "../template-utils/example-component-sets/registry";
 import type { UserQueryResponsePayload } from "../template-utils/types";
