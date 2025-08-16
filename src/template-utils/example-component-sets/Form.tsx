@@ -10,6 +10,7 @@ import type { Parent } from "../../template-models/template-models";
 import { templateValidatorFor } from "../../template-models/validator-utils";
 import { templateValidator as InputValidator } from "./Input";
 import z from "zod";
+import { getClassName } from "../styles";
 
 type TemplateType = "form";
 interface FormTemplate extends Parent<TemplateType> { }
@@ -21,6 +22,8 @@ export const templateValidator = templateValidatorFor("form", {
 export type FormProps = PropsWithChildren &
   GenerativeUISubmitComponent &
   GenerativeUIComponent;
+
+const type = "form";
 
 const Form = ({ children, onSubmit }: FormProps) => {
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -60,7 +63,7 @@ const Form = ({ children, onSubmit }: FormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={getClassName(type)}>
       {children}
       <button type="submit">Continue</button>
     </form>
@@ -68,7 +71,7 @@ const Form = ({ children, onSubmit }: FormProps) => {
 };
 
 export const FormSet = {
-  type: "form",
+  type,
   component: Form,
   templateValidator,
   instructions: {
