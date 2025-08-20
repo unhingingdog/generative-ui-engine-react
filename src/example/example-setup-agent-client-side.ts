@@ -1,16 +1,16 @@
 // This is an example implementation using the example template pairs in template-utils.
 // The code quality is not exemplary.
 
-import { registry } from "../template-utils/example-component-sets/registry";
-import type { UserQueryResponsePayload } from "../template-utils/types";
+import { registry as exampleRegistryNotToBePackaged } from "../template-utils/example-component-sets/registry";
+import type { RenderTargetModels } from "../template-utils";
 import {
   createEngineAdapter,
   createAgentsProvider,
+  generateSystemPrompt,
   type EnginePort,
   type ChatMessage,
-} from "../agent/transport";
-import { generateSystemPrompt } from "../agent/prompt-generator";
-import { createCombinedEngine } from "../engine/engine";
+} from "../client";
+import { createEngine } from "../engine";
 import OpenAI from "openai";
 
 function buildPromptFromMessages(
@@ -121,7 +121,7 @@ const complexExample = {
 // ---------- constants ----------
 const SYSTEM_PROMPT = generateSystemPrompt(
   "You are an customer service assistant for a furniture store.",
-  registry.instructions,
+  exampleRegistryNotToBePackaged.instructions,
   { exampleJSON: complexExample },
 );
 
@@ -136,10 +136,10 @@ export async function startExample() {
 
   console.log("ENGINE START");
   let adapter!: ReturnType<typeof createEngineAdapter>;
-  const engine = await createCombinedEngine({
-    registry,
+  const engine = await createEngine({
+    registry: exampleRegistryNotToBePackaged,
     rootNode: document.getElementById("gen-ui-root")!,
-    onSubmit: (payloads: UserQueryResponsePayload[]) =>
+    onSubmit: (payloads: RenderTargetModels.UserQueryResponsePayload[]) =>
       adapter.submit(payloads),
     debug: false,
   });
@@ -151,7 +151,7 @@ export async function startExample() {
   };
 
   // Provider: Responses API stream → engine (async-iterable; no race with 'completed')
-  const provider = createAgentsProvider(async function*(
+  const provider = createAgentsProvider(async function* (
     messages: ChatMessage[],
   ) {
     console.log("PROVIDER start", messages);
