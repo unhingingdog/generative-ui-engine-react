@@ -1,6 +1,6 @@
 {
   "name": "shadowboxin",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "Utilities for building streaming, AI-generatied UIs.",
   "author": "Hamish Gilkison <hamishgilkison@gmail.com>",
   "license": "MIT",
