@@ -1,14 +1,57 @@
 {
-  "name": "generative-ui-engine-react",
-  "private": true,
-  "version": "0.0.0",
+  "name": "shadowboxin",
+  "version": "0.1.0-beta.4",
+  "description": "Shadowboxin: Utils for real-time streamed LLM-generated UIs.",
+  "keywords": [
+    "shadowboxin",
+    "utils",
+    "wasm",
+    "telomere",
+    "engine",
+    "template",
+    "openai",
+    "llm",
+    "streaming"
+  ],
+  "license": "MIT",
+  "author": "Your Name <you@example.com>",
+  "homepage": "https://github.com/your-org/shadowboxin#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/shadowboxin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/shadowboxin/issues"
+  },
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
     "dev": "vite",
-    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run"
+  },
+  "exports": {
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "import": "./dist/engine.js"
+    },
+    "./template-models": {
+      "types": "./dist/template-models.d.ts",
+      "import": "./dist/template-models.js"
+    },
+    "./template-utils": {
+      "types": "./dist/template-utils.d.ts",
+      "import": "./dist/template-utils.js"
+    }
   },
   "dependencies": {
     "@openai/agents": "^0.0.16",
@@ -17,10 +60,14 @@
     "openai": "^5.12.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "telomere": "^0.1.6",
+    "telomere": "^0.1.6"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19",
     "zod": "^4.0.17"
   },
   "devDependencies": {
+    "zod": "^4.0.17",
     "@eslint/js": "^9.33.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.4",
@@ -38,5 +85,9 @@
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",
     "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
