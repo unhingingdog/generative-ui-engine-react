@@ -1,6 +1,6 @@
 {
   "name": "shadowboxin",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "Shadowboxin: Utils for real-time streamed LLM-generated UIs.",
   "keywords": [
     "shadowboxin",
@@ -58,16 +58,14 @@
     "@openai/agents-openai": "^0.0.16",
     "eventsource-client": "^1.1.4",
     "openai": "^5.12.2",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
     "telomere": "^0.1.6"
   },
   "peerDependencies": {
-    "react": "^18 || ^19",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
     "zod": "^4.0.17"
   },
   "devDependencies": {
-    "zod": "^4.0.17",
     "@eslint/js": "^9.33.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.4",
@@ -81,10 +79,14 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "jsdom": "^26.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tsdown": "^0.12.9",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zod": "^4.0.17"
   },
   "publishConfig": {
     "access": "public",
