@@ -1,2 +1,7 @@
 export type * as TemplateModels from "./template-models";
-export type * as validatorUtils from "./validator-utils";
+export type { ZSchema } from "./validator-utils";
+export type {
+  templateValidatorFor,
+  parentValidatorFor,
+  queryableParentValidatorFor,
+} from "./validator-utils";
