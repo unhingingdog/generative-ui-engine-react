@@ -23,7 +23,7 @@ export type EngineInputs<Ps extends TemplatePairs> = EngineFrontendInputs<Ps> &
     EngineBackendInputs<SchemaFromPairs<Ps>>,
     "debug" | "logger" | "onInvalid"
   > & {
-    Providers?: Providers;
+    wrapper?: Providers;
     streamDone?(): void;
   };
 
@@ -36,16 +36,16 @@ export type CombinedEngine = {
 export const createCombinedEngine = async <Ps extends TemplatePairs>(
   inputs: EngineInputs<Ps>,
 ): Promise<CombinedEngine> => {
-  const { registry, rootNode, onSubmit, Providers, debug, logger, onInvalid } =
+  const { registry, rootNode, onSubmit, wrapper, debug, logger, onInvalid } =
     inputs;
 
   const frontend = createEngineFrontend<Ps>({
     registry,
     rootNode,
     onSubmit,
-    ...(Providers ? { Providers } : {}),
     debug,
     logger,
+    wrapper,
   });
 
   const backend = await createEngineBackend<SchemaFromPairs<Ps>>({

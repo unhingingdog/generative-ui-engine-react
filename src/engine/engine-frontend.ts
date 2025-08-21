@@ -9,12 +9,15 @@ import type { UserQueryResponsePayload } from "../template-utils/types";
 
 type Logger = Pick<Console, "debug" | "warn" | "error">;
 
+type Providers = React.ComponentType<{ children: React.ReactNode }>;
+
 export interface EngineFrontendInputs<Ps extends TemplatePairs> {
   onSubmit(payload: UserQueryResponsePayload[]): void;
   rootNode: HTMLElement;
   registry: TemplateRegistry<Ps>;
   debug?: boolean;
   logger?: Logger;
+  wrapper?: Providers;
 }
 
 export interface EngineFrontend<Ps extends TemplatePairs> {
@@ -30,6 +33,7 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
   registry,
   debug = false,
   logger = console,
+  wrapper,
 }: EngineFrontendInputs<Ps>): EngineFrontend<Ps> {
   let root: Root | null = createRoot(rootNode);
   let seq = 0;
@@ -85,7 +89,8 @@ export function createEngineFrontend<Ps extends TemplatePairs>({
     // Log that a render is happening with the root component's ID.
     logd(`render#${seq}: updating UI with root component '${data.id}'`);
 
-    root.render(toElement(data));
+    const tree = toElement(data);
+    root.render(wrapper ? createElement(wrapper, null, tree) : tree);
   };
 
   const reset = () => {

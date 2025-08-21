@@ -12,6 +12,7 @@ import {
 } from "../client";
 import { createEngine } from "../engine";
 import OpenAI from "openai";
+import React from "react";
 
 function buildPromptFromMessages(
   messages: ChatMessage[],
@@ -118,6 +119,17 @@ const complexExample = {
   ],
 };
 
+export const DebugWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return (
+    <div style={{ border: "2px dashed red", padding: "8px" }}>
+      <h3 style={{ marginTop: 0, color: "red" }}>DEBUG WRAPPER</h3>
+      {children}
+    </div>
+  );
+};
+
 // ---------- constants ----------
 const SYSTEM_PROMPT = generateSystemPrompt(
   "You are an customer service assistant for a furniture store.",
@@ -142,6 +154,7 @@ export async function startExample() {
     onSubmit: (payloads: RenderTargetModels.UserQueryResponsePayload[]) =>
       adapter.submit(payloads),
     debug: false,
+    wrapper: DebugWrapper,
   });
   console.log("INIT ENGINE", engine);
 
